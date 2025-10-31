@@ -40,7 +40,7 @@ build_dir:
 		echo "  mkdir $(BUILD)/src";    \
 	fi
 
-ifeq ("$(wildcard $(PWD)/parlaylib)", "")
+ifeq ("$(wildcard $(PWD)/parlaylib/CMakeLists.txt)", "")
 CLONE_REPO = 1
 endif
 ifeq ("$(wildcard $(PWD)/parlaylib/build)", "")
