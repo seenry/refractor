@@ -34,7 +34,7 @@ NurbSurf::NurbSurf(int res)
 }
 
 float NurbCurve::blend(int i, int p, float t) {
-  float tol = 1e-8f;
+  float tol = 1e-6f;
 
   if (p == 0) {
     return (
