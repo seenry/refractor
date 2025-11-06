@@ -1,0 +1,19 @@
+name: Validate Build
+
+on:
+  push
+
+jobs:
+  validate-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Make
+        run: |
+          make && make clean
+          make run_tests
+          ./run_tests

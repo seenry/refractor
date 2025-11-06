@@ -1,46 +1,50 @@
-CC = @echo "  CC :: "$(TARGET); clang++
+CC = @echo " CC :: "$@ ; clang++
 
-EXEC = refractor
+EXE := refractor
 
-TARGET = 
-DID_CLEAN = 0
+COMMON_FLAGS := -Wall -Wextra
+CFLAGS := $(COMMON_FLAGS) -O2 
+DFLAGS := $(COMMON_FLAGS) -O0 -g -fsanitize=address -fsanitize=undefined
+INC := -I$(PWD)/parlaylib/build/install/include -I$(PWD)/include
+LNK := 
 
-BUILD = build
-SRC = $(shell find ./src/ -name "*.cpp")
-OBJS = $(patsubst %,$(BUILD)/%, $(SRC:.cpp=.o))
-INC = -I./
-LNK = 
+SRCS := $(shell find ./src/ -name '*.cpp')
+OBJS := $(patsubst ./src/%.cpp,build/%.o,$(SRCS))
 
-FLAGS = -Wall -g -O2
+TEST_CPP := $(shell find ./test/ -name '*.cpp')
+TEST_OS := $(filter-out ./test/build/s/main.o, $(patsubst ./src/%.cpp,./test/build/s/%.o,$(SRCS)))
+TEST_OT := $(patsubst ./test/%.cpp,./test/build/t/%.o,$(TEST_CPP))
 
-all: $(EXEC)
+all: $(EXE)
 
-$(BUILD)/%.o: %.cpp | libraries build_dir
-	$(eval TARGET=$(patsubst build/./%,%,$(@)))
-	$(CC) $(FLAGS) $(INC) $(CC_FLAGS) -c $< -o $@
+$(EXE): $(OBJS)
+	$(CC) $(LNK) $(CFLAGS) $^ -o $@
 
-$(EXEC): $(OBJS)
-	$(eval TARGET=$(EXEC))
-	$(CC) $(FLAGS) $(LNK) -o $@ $^
+build/%.o: src/%.cpp | libraries
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 
-.PHONY: clean
+debug: CFLAGS = $(DFLAGS)
+debug: $(EXE)
+
+test/build/s/%.o: src/%.cpp | libraries
+	@mkdir -p $(dir $@)
+	@$(CC) $(DFLAGS) $(INC) -c $< -o $@
+test/build/t/%.o: test/%.cpp
+	@mkdir -p $(dir $@)
+	@$(CC) $(DFLAGS) $(INC) -I$(PWD)/test -c $< -o $@
+run_tests: $(TEST_OS) $(TEST_OT)
+	@$(CC) $(LNK) $(DFLAGS) $^ -o run_tests
+
+.PHONY: all run_tests clean debug libraries
 
 clean:
 	@echo "  cleaning...";  \
 	rm -f $(EXEC); \
-	rm -rf $(BUILD)
+	rm -rf build/ ; \
+	rm -rf test/build
 
-build_dir:
-	@if [ ! -d "./$(BUILD)" ]; then \
-		mkdir $(BUILD);             \
-		echo "  mkdir $(BUILD)";    \
-	fi
-	@if [ ! -d "./$(BUILD)/src" ]; then \
-		mkdir $(BUILD)/src;             \
-		echo "  mkdir $(BUILD)/src";    \
-	fi
-
-ifeq ("$(wildcard $(PWD)/parlaylib)", "")
+ifeq ("$(wildcard $(PWD)/parlaylib/CMakeLists.txt)", "")
 CLONE_REPO = 1
 endif
 ifeq ("$(wildcard $(PWD)/parlaylib/build)", "")
@@ -51,15 +55,14 @@ INSTALL_LIB = 1
 endif
 libraries:
 	@cd $(PWD)
-	@if [[ -nz "$(CLONE_REPO)" ]] ; then \
+	@if [ -n "$(CLONE_REPO)" ] ; then \
 		git submodule update --init --recursive ; \
 	fi
-	@if [[ -nz "$(MK_BUILD_DIR)" ]] ; then \
+	@if [ -n "$(MK_BUILD_DIR)" ] ; then \
 		mkdir parlaylib/build ; \
 	fi
-	@if [[ -nz "$(INSTALL_LIB)" ]] ; then \
+	@if [ -n "$(INSTALL_LIB)" ] ; then \
 		cd parlaylib/build ; \
 		cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$(PWD)/parlaylib/build/install ; \
 		cmake --build . --target install ; \
 	fi
-

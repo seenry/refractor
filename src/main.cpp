@@ -1,8 +1,11 @@
 #include <iostream>
+#include <vector>
+
+#include "surface.h"
 
 int main() {
-  std::cout << "Hello, world~~\n";
-  
+  NurbSurf sf(4);
+
   return 0;
 }
 
