@@ -13,9 +13,9 @@
     sscanf(line, "%g,%g,%g", &gx, &gy, &gz); \
     snprintf(line, 256, "point %d = (%f, %f, %f), expects (%f, %f, %f)", \
       i, p.data[0], p.data[1], p.data[2], gx, gy, gz); \
-    ASSERT_BLAME(fabsf(p.data[0] - gx) < FLOAT_TOL, line); \
-    ASSERT_BLAME(fabsf(p.data[1] - gy) < FLOAT_TOL, line); \
-    ASSERT_BLAME(fabsf(p.data[2] - gz) < FLOAT_TOL, line); \
+    ASSERT_BLAME(std::abs(p.data[0] - gx) < FLOAT_TOL, line); \
+    ASSERT_BLAME(std::abs(p.data[1] - gy) < FLOAT_TOL, line); \
+    ASSERT_BLAME(std::abs(p.data[2] - gz) < FLOAT_TOL, line); \
   } \
 } while (0)
 
@@ -41,7 +41,7 @@ TESTCASE(test_curve_0) {
   };
 
   compare_with_file(curve, "./test/curve_0.csv");
-  
+
   return 0;
 }
 

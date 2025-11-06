@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <stdint.h>
+#include <cmath>
 
 #define TESTCASE(label) \
 uint8_t label(char* err_str_)
