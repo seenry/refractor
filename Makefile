@@ -40,9 +40,10 @@ run_tests: $(TEST_OS) $(TEST_OT)
 
 clean:
 	@echo "  cleaning...";  \
-	rm -f $(EXEC); \
+	rm -f refractor; \
 	rm -rf build/ ; \
-	rm -rf test/build
+	rm -rf test/build ; \
+	rm -f run_tests
 
 ifeq ("$(wildcard $(PWD)/parlaylib/CMakeLists.txt)", "")
 CLONE_REPO = 1

@@ -5,14 +5,20 @@ from matplotlib.widgets import Slider
 from scipy.optimize import minimize
 
 def interp(i, k, t, knots):
+    tol = 1e-6
+
     if k == 0:
-        return 1.0 if knots[i] <= t < knots[i+1] else 0.0
-    else:
-        denom1 = knots[i+k] - knots[i]
-        denom2 = knots[i+k+1] - knots[i+1]
-        term1 = ((t - knots[i]) / denom1) * interp(i, k-1, t, knots) if denom1 else 0
-        term2 = ((knots[i+k+1] - t) / denom2) * interp(i+1, k-1, t, knots) if denom2 else 0
-        return term1 + term2
+        if (knots[i] <= t + tol) and (t - tol < knots[i+1]):
+            return 1.0
+        else:
+            return 0.0
+    
+    denom1 = knots[i+k] - knots[i]
+    denom2 = knots[i+k+1] - knots[i+1]
+    c1 = 0.0 if denom1 < tol else (t - knots[i]) / denom1
+    c2 = 0.0 if denom2 < tol else (knots[i+k+1] - t) / denom2
+
+    return c1 * interp(i, k-1, t, knots) + c2 * interp(i+1, k-1, t, knots)
 
 def eval(u, v, control_points, u_knots, v_knots, p, q, weights=None):
     nu, nv, _ = control_points.shape
@@ -84,77 +90,6 @@ def find_uv_for_xy(target_x, target_y, control_points, u_knots, v_knots, p, q, w
         'error': error
     }
 
-def surface_normal(u, v, control_points, u_knots, v_knots, p, q, weights=None, epsilon=1e-6):
-    """
-    Compute the normal vector of the NURBS surface at parameter (u, v).
-    
-    Uses finite differences to approximate the partial derivatives:
-        dS/du and dS/dv
-    Then computes the normal as: n = (dS/du) × (dS/dv), normalized.
-    
-    Args:
-        u, v: parameter values in [0, 1]
-        control_points, u_knots, v_knots, p, q, weights: NURBS surface parameters
-        epsilon: step size for finite differences
-    
-    Returns:
-        normal: unit normal vector (3D numpy array)
-    """
-    # clamp parameters to valid range
-    u = np.clip(u, 0.0, 1.0)
-    v = np.clip(v, 0.0, 1.0)
-    
-    # compute partial derivatives using central differences when possible
-    # dS/du
-    if u + epsilon <= 1.0:
-        u_plus = u + epsilon
-        u_minus = u
-        du = epsilon
-    elif u - epsilon >= 0.0:
-        u_plus = u
-        u_minus = u - epsilon
-        du = epsilon
-    else:
-        # edge case: use forward difference
-        u_plus = u + epsilon
-        u_minus = u
-        du = epsilon
-    
-    S_u_plus = eval(u_plus, v, control_points, u_knots, v_knots, p, q, weights)
-    S_u_minus = eval(u_minus, v, control_points, u_knots, v_knots, p, q, weights)
-    dS_du = (S_u_plus - S_u_minus) / du
-    
-    # dS/dv
-    if v + epsilon <= 1.0:
-        v_plus = v + epsilon
-        v_minus = v
-        dv = epsilon
-    elif v - epsilon >= 0.0:
-        v_plus = v
-        v_minus = v - epsilon
-        dv = epsilon
-    else:
-        v_plus = v + epsilon
-        v_minus = v
-        dv = epsilon
-    
-    S_v_plus = eval(u, v_plus, control_points, u_knots, v_knots, p, q, weights)
-    S_v_minus = eval(u, v_minus, control_points, u_knots, v_knots, p, q, weights)
-    dS_dv = (S_v_plus - S_v_minus) / dv
-    
-    # compute cross product
-    normal = np.cross(dS_du, dS_dv)
-    
-    # normalize
-    norm_length = np.linalg.norm(normal)
-    if norm_length > 1e-10:
-        normal = normal / norm_length
-    else:
-        # degenerate case: return arbitrary unit vector
-        normal = np.array([0.0, 0.0, 1.0])
-    
-    return normal
-
 # degrees
 p, q = 3, 3
 
@@ -182,23 +117,6 @@ x = np.linspace(0, 1, 100)
 y = np.linspace(0, 1, 100)
 points = np.array([[eval(u, v, control_points, u_knots, v_knots, p, q, weights) for v in y] for u in x])
 
-# Test ray-surface intersection
-# Pick a target point in the xy plane
-test_x, test_y = 2.1, 1.25
-
-result = find_uv_for_xy(test_x, test_y, control_points, u_knots, v_knots, p, q, weights)
-print(f"\nRay intersection test:")
-print(f"  Target (x,y): ({test_x}, {test_y})")
-print(f"  Found (u,v): ({result['u']:.4f}, {result['v']:.4f})")
-print(f"  Surface point: ({result['point'][0]:.4f}, {result['point'][1]:.4f}, {result['point'][2]:.4f})")
-print(f"  XY error: {result['error']:.6f}")
-print(f"  Success: {result['success']}")
-
-# Compute normal at the intersection point
-if result['success']:
-    normal = surface_normal(result['u'], result['v'], control_points, u_knots, v_knots, p, q, weights)
-    print(f"  Normal vector: ({normal[0]:.4f}, {normal[1]:.4f}, {normal[2]:.4f})")
-    print(f"  Normal length: {np.linalg.norm(normal):.6f} (should be 1.0)")
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -213,24 +131,77 @@ cp_y = control_points[:,:,1].flatten()
 cp_z = control_points[:,:,2].flatten()
 ax.scatter(cp_x, cp_y, cp_z, c='r', marker='^', s=50, label='Control points')
 
-ax.set_zlim(points[:,:,2].min()-0.01, points[:,:,2].max()+0.01)
-# plot intersection point if found
-if result['success'] and result['error'] < 0.1:
-    pt = result['point']
-    ax.scatter([pt[0]], [pt[1]], [pt[2]], c='g', marker='o', s=100, 
-               label=f'Intersection at ({pt[0]:.2f}, {pt[1]:.2f}, {pt[2]:.2f})')
-    # draw vertical line from bottom to intersection point
-    ax.plot([pt[0], pt[0]], [pt[1], pt[1]], [points[:,:,2].min()-0.5, pt[2]], 
-            'g--', linewidth=2, label='Ray')
-    
-    # draw normal vector at intersection point
-    normal = surface_normal(result['u'], result['v'], control_points, u_knots, v_knots, p, q, weights)
+# load in vectors from test/surf_0_normal.txt
+'''
+Generated by:
+for (int i = 0; i < 11; i++) {
+    for (int j = 0; j < 11; j++) {
+        float u = (float) i / 10.0f;
+        float v = (float) j / 10.0f;
+        fv3_t n = surf.get_normal(u, v);
+        fprintf(out, "%f,%f,%f\n", n.data[0], n.data[1], n.data[2]);
+    }
+}
+'''
+normals = np.loadtxt('test/norm_0.txt', delimiter=',').reshape((17, 17, 3))
+# plot normals as arrows
+for i in range(17):
+    for j in range(17):
+        u = i / 16.0
+        v = j / 16.0
+        pt = eval(u, v, control_points, u_knots, v_knots, p, q, weights)
+        n = normals[i, j]
+        ax.quiver(pt[0], pt[1], pt[2], n[0], n[1], n[2], length=0.2, color='g', normalize=True)
 
-    normal_scale = 0.5  # scale factor for visualization
-    ax.quiver(pt[0], pt[1], pt[2], 
-              normal[0], normal[1], normal[2],
-              length=normal_scale, color='orange', arrow_length_ratio=0.3, linewidth=2,
-              label='Surface normal')
+# plot against locally generated truth normals
+
+def surface_normal(u, v, control_points, u_knots, v_knots, p, q, weights=None, epsilon=1e-6):
+    """
+    fv3_t NurbSurf::get_normal(float t_x, float t_y) {
+    float epsilon = 1e-7f;
+    fv3_t ur = get_point(t_x + epsilon, t_y);
+    fv3_t ul = get_point(t_x - epsilon, t_y);
+    fv3_t vr = get_point(t_x, t_y + epsilon);
+    fv3_t vl = get_point(t_x, t_y - epsilon);
+
+    fv3_t du = (ur + ul) * (1.0f / (2.0f * epsilon));
+    fv3_t dv = (vr + vl) * (1.0f / (2.0f * epsilon));
+
+    fv3_t normal(
+        du.data[1] * dv.data[2] - du.data[2] * dv.data[1],
+        du.data[2] * dv.data[0] - du.data[0] * dv.data[2],
+        du.data[0] * dv.data[1] - du.data[1] * dv.data[0]
+    );
+    
+    return normal;
+    }
+    """
+    ur = eval(u + epsilon, v, control_points, u_knots, v_knots, p, q, weights)
+    ul = eval(u - epsilon, v, control_points, u_knots, v_knots, p, q, weights)
+    vr = eval(u, v + epsilon, control_points, u_knots, v_knots, p, q, weights)
+    vl = eval(u, v - epsilon, control_points, u_knots, v_knots, p, q, weights)
+
+    du = (ur - ul) / (2.0 * epsilon)
+    dv = (vr - vl) / (2.0 * epsilon)
+
+    normal = np.array([
+        du[1] * dv[2] - du[2] * dv[1],
+        du[2] * dv[0] - du[0] * dv[2],
+        du[0] * dv[1] - du[1] * dv[0]
+    ])
+    
+    norm_length = np.linalg.norm(normal)
+    if norm_length < 1e-6:
+        return np.array([0.0, 0.0, 0.0])
+    return normal / norm_length
+
+# for i in range(11):
+#     for j in range(11):
+#         u = i / 10.0
+#         v = j / 10.0
+#         pt = eval(u, v, control_points, u_knots, v_knots, p, q, weights)
+#         n = surface_normal(u, v, control_points, u_knots, v_knots, p, q, weights)
+#         ax.quiver(pt[0], pt[1], pt[2], n[0], n[1], n[2], length=0.2, color='k', normalize=True)
 
 # rescale each axis equally
 max_range = np.array([points[:,:,0].max()-points[:,:,0].min(), points[:,:,1].max()-points[:,:,1].min(), points[:,:,2].max()-points[:,:,2].min()]).max() / 2.0

@@ -6,8 +6,9 @@ TESTCASE(test_0) {
 }
 
 uint8_t (*test_list[])(char*) = {
-    test_curve_0,
-    test_curve_1,
+    test_surf_init,
+    test_surf_0,
+    test_surf_1
 };
 
 int main () {
