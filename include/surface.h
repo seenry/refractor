@@ -26,8 +26,10 @@ public:
   NurbSurf();
   NurbSurf(int res);
 
-  float blend(int axis, int i, int p, float t);
+  float basis(int axis, int i, int p, float t);
   fv3_t get_point(float t_x, float t_y);
-  float blend_deriv(int axis, int i, int p, float t);
+  float dbasis(int axis, int i, int p, float t);
   fv3_t get_normal(float t_x, float t_y);
+
+  // void get_intersect(float x, float y, float* u, float* v);
 };

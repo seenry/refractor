@@ -78,14 +78,15 @@ TESTCASE(test_surf_1) {
 
   FILE* norm_gold = fopen("test/norm_0.txt", "r");
   char line[256];
-  for (int i = 0; i < 17; i++) {
-    for (int j = 0; j < 17; j++) {
-      float u = (float) i / 16.0f;
-      float v = (float) j / 16.0f;
+  for (int i = 0; i < 21; i++) {
+    for (int j = 0; j < 21; j++) {
+      float u = (float) i / 20.0f;
+      float v = (float) j / 20.0f;
       fv3_t n = surf.get_normal(u, v);
       fgets(line, 256, norm_gold);
+      float x_, y_, z_;
       float gx, gy, gz;
-      sscanf(line, "%g,%g,%g", &gx, &gy, &gz);
+      sscanf(line, "%g,%g,%g,%g,%g,%g", &x_, &y_, &z_, &gx, &gy, &gz);
       snprintf(line, 256, "normal (%d,%d) expects (%f, %f, %f), got (%f, %f, %f)", 
         i, j, gx, gy, gz, n.data[0], n.data[1], n.data[2]);
       ASSERT_BLAME(std::abs(n.data[0] - gx) < FLOAT_TOL, line);
