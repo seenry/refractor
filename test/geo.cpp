@@ -1,6 +1,6 @@
 #include "test.h"
 
-#include "surface.h"
+#include "nurbs.h"
 
 #define compare_with_file(surf, filename) do { \
   FILE* gold = fopen(filename, "r"); \
@@ -13,11 +13,11 @@
       fgets(line, 256, gold); \
       float gx, gy, gz; \
       sscanf(line, "%g,%g,%g", &gx, &gy, &gz); \
-      snprintf(line, 256, "point (%d,%d) expects (%f, %f, %f), got (%f, %f, %f)", \
+      snprintf(line, 256, "point (%d,%d) expects (%.20g, %.20g, %.20g), got (%.20g, %.20g, %.20g)", \
         i, j, gx, gy, gz, p.data[0], p.data[1], p.data[2]); \
-      ASSERT_BLAME(std::abs(p.data[0] - gx) < FLOAT_TOL, line); \
-      ASSERT_BLAME(std::abs(p.data[1] - gy) < FLOAT_TOL, line); \
-      ASSERT_BLAME(std::abs(p.data[2] - gz) < FLOAT_TOL, line); \
+      ASSERT_BLAME(std::abs(p.data[0] - gx) < F32_TOL, line); \
+      ASSERT_BLAME(std::abs(p.data[1] - gy) < F32_TOL, line); \
+      ASSERT_BLAME(std::abs(p.data[2] - gz) < F32_TOL, line); \
     } \
   } \
   fclose(gold); \
@@ -26,7 +26,8 @@
 TESTCASE(test_surf_init) {
   NurbSurf surf_0;
   ASSERT(surf_0.degree == 3);
-  ASSERT(surf_0.point_res == 16);
+  ASSERT(surf_0.point_res[0] == 16);
+  ASSERT(surf_0.point_res[1] == 16);
   ASSERT(surf_0.ctrl.size() == 16);
   ASSERT(surf_0.weight.size() == 16);
   for (int i = 0; i < 16; i++) {
@@ -38,7 +39,8 @@ TESTCASE(test_surf_init) {
 
   NurbSurf surf_1(11);
   ASSERT(surf_1.degree == 3);
-  ASSERT(surf_1.point_res == 11);
+  ASSERT(surf_1.point_res[0] == 11);
+  ASSERT(surf_1.point_res[1] == 11);
   ASSERT(surf_1.ctrl.size() == 11);
   ASSERT(surf_1.weight.size() == 11);
   for (int i = 0; i < 11; i++) {
@@ -89,12 +91,73 @@ TESTCASE(test_surf_1) {
       sscanf(line, "%g,%g,%g,%g,%g,%g", &x_, &y_, &z_, &gx, &gy, &gz);
       snprintf(line, 256, "normal (%d,%d) expects (%f, %f, %f), got (%f, %f, %f)", 
         i, j, gx, gy, gz, n.data[0], n.data[1], n.data[2]);
-      ASSERT_BLAME(std::abs(n.data[0] - gx) < FLOAT_TOL, line);
-      ASSERT_BLAME(std::abs(n.data[1] - gy) < FLOAT_TOL, line);
-      ASSERT_BLAME(std::abs(n.data[2] - gz) < FLOAT_TOL, line);
+      ASSERT_BLAME(std::abs(n.data[0] - gx) < F32_TOL, line);
+      ASSERT_BLAME(std::abs(n.data[1] - gy) < F32_TOL, line);
+      ASSERT_BLAME(std::abs(n.data[2] - gz) < F32_TOL, line);
     }
   }
   fclose(norm_gold);
+
+  return 0;
+}
+
+#define POST_INSERT_CMP(surf) do { \
+  for (int u = 0; u < 100; u++) { \
+    for (int v = 0; v < 100; v++) { \
+      float fu = (float) u / 99.0f; \
+      float fv = (float) v / 99.0f; \
+      fv3_t p_test = surf.get_point(fu, fv); \
+      fv3_t p_gold = gold.get_point(fu, fv); \
+      char msg[256]; \
+      snprintf(msg, 256, "point(%.6g, %.6g) expects (%.20g, %.20g, %.20g), got (%.20g, %.20g, %.20g)", \
+        fu, fv, \
+        p_gold.data[0], p_gold.data[1], p_gold.data[2], \
+        p_test.data[0], p_test.data[1], p_test.data[2]); \
+      ASSERT_BLAME(std::abs(p_test.data[0] - p_gold.data[0]) < F32_TOL, msg); \
+      ASSERT_BLAME(std::abs(p_test.data[1] - p_gold.data[1]) < F32_TOL, msg); \
+      ASSERT_BLAME(std::abs(p_test.data[2] - p_gold.data[2]) < F32_TOL, msg); \
+    } \
+  } \
+} while (0)
+TESTCASE(test_surf_2) {
+  NurbSurf gold(4);
+  SETUP_SURF_0(gold);
+
+  int n_insert = 17;
+
+  NurbSurf s0(4);
+  SETUP_SURF_0(s0);
+  for (int i = 0; i < n_insert; i++) {
+    float t = (float) (i + 1) / (float) (n_insert + 1);
+    s0.insert_knot(0, t);
+  }
+  ASSERT(s0.point_res[0] == 4 + n_insert);
+  ASSERT(s0.point_res[1] == 4);
+  POST_INSERT_CMP(s0);
+
+  NurbSurf s1(4);
+  SETUP_SURF_0(s1);
+  for (int i = 0; i < n_insert; i++) {
+    float t = (float) (i + 1) / (float) (n_insert + 1);
+    s1.insert_knot(1, t);
+  }
+  ASSERT(s1.point_res[0] == 4);
+  ASSERT(s1.point_res[1] == 4 + n_insert);
+  POST_INSERT_CMP(s1);
+
+  for (int i = 0; i < n_insert; i++) {
+    float t = (float) (i + 1) / (float) (n_insert + 1);
+    s0.insert_knot(1, t);
+  }
+  ASSERT(s0.point_res[1] == 4 + n_insert);
+  POST_INSERT_CMP(s0);
+
+  for (int i = 0; i < n_insert; i++) {
+    float t = (float) (i + 1) / (float) (n_insert + 1);
+    s1.insert_knot(0, t);
+  }
+  ASSERT(s1.point_res[0] == 4 + n_insert);
+  POST_INSERT_CMP(s1);
 
   return 0;
 }

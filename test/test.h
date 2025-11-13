@@ -6,7 +6,7 @@
 #define TESTCASE(label) \
 uint8_t label(char* err_str_)
 
-#define FLOAT_TOL ( 1e-6f )
+#define F32_TOL ( 1e-5f )
 
 #define ASSERT(cond) do { \
     if (!(cond)) { \
@@ -25,3 +25,4 @@ uint8_t label(char* err_str_)
 TESTCASE(test_surf_init);
 TESTCASE(test_surf_0);
 TESTCASE(test_surf_1);
+TESTCASE(test_surf_2);

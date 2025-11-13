@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "surface.h"
+#include "nurbs.h"
 
 int main() {
   NurbSurf sf(4);
