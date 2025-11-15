@@ -1,54 +1,8 @@
 #include "nurbs.h"
-#include <cmath>
-#include <limits>
 
-#define FTOL (5e-7f)
+#include "vec.h"
+#include "defines.h"
 
-//////// fv3_t ////////////////////////////////////////////////////////////////
-fv3_t fv3_t::operator+(const fv3_t& other) const {
-  return fv3_t(
-    data[0] + other.data[0],
-    data[1] + other.data[1],
-    data[2] + other.data[2]
-  );
-}
-fv3_t fv3_t::operator-(const fv3_t& other) const {
-  return fv3_t(
-    data[0] - other.data[0],
-    data[1] - other.data[1],
-    data[2] - other.data[2]
-  );
-}
-fv3_t fv3_t::operator*(float scalar) const {
-  return fv3_t(
-    data[0] * scalar,
-    data[1] * scalar,
-    data[2] * scalar
-  );
-}
-float fv3_t::dot(const fv3_t& other) const {
-  return data[0] * other.data[0] + data[1] * other.data[1] + data[2] * other.data[2];
-}
-float fv3_t::length() const {
-  return std::sqrt(data[0] * data[0] + data[1] * data[1] + data[2] * data[2]);
-}
-fv3_t fv3_t::cross(const fv3_t& other) const {
-  return fv3_t(
-    data[1] * other.data[2] - data[2] * other.data[1],
-    data[2] * other.data[0] - data[0] * other.data[2],
-    data[0] * other.data[1] - data[1] * other.data[0]
-  );
-}
-fv3_t fv3_t::normalize() const {
-  float len = length();
-  if (len > FTOL) {
-    return (*this) * (1.0f / len);
-  } else {
-    return fv3_t(0.0f, 0.0f, 0.0f);
-  }
-}
-
-//////// NurbSurf /////////////////////////////////////////////////////////////
 NurbSurf::NurbSurf() : NurbSurf(16) {}
 NurbSurf::NurbSurf(int res)
   : point_res(std::array<int, 2>{res, res})
@@ -187,6 +141,8 @@ fv3_t NurbSurf::get_normal(float t_x, float t_y) const {
   return du.cross(dv).normalize();
 }
 
+// https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/NURBS-knot-insert.html
+// https://github.com/cyanray/libnurbs/blob/913e40ba/src/Curve/Curve.cpp#L464-L476
 #define INDEX(matrix, axis, i, j) \
   (axis == 0 ? (matrix)[i][j] : (matrix)[j][i])
 void NurbSurf::insert_knot(int axis, float t) {
