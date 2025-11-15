@@ -22,7 +22,8 @@ public:
   fv3_t get_normal(float t_x, float t_y) const;
 
   void insert_knot(int axis, float t);
-  void insert_knot0(int axis, float t);
+
+  void refine_mesh();
 
 private:
   int get_support(int axis, float t) const;

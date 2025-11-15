@@ -26,3 +26,4 @@ TESTCASE(test_surf_init);
 TESTCASE(test_surf_0);
 TESTCASE(test_surf_1);
 TESTCASE(test_surf_2);
+TESTCASE(test_flatenning_0);

@@ -10,6 +10,7 @@ uint8_t (*test_list[])(char*) = {
     test_surf_0,
     test_surf_1,
     test_surf_2,
+    test_flatenning_0,
 };
 
 int main () {

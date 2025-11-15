@@ -161,3 +161,38 @@ TESTCASE(test_surf_2) {
 
   return 0;
 }
+
+TESTCASE(test_flatenning_0) {
+  NurbSurf surf(6);
+  for (int i = 0; i < 6; i++) {
+    for (int j = 0; j < 6; j++) {
+      surf.ctrl[i][j] = fv3_t((float) i, (float) j, 0.0f);
+      surf.weight[i][j] = 1.0f;
+    }
+  }
+  surf.knot[0] = {0.0f, 0.0f, 0.0f, 0.0f, 1.0f / 3.0f, 2.0f / 3.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+  surf.knot[1] = {0.0f, 0.0f, 0.0f, 0.0f, 1.0f / 3.0f, 2.0f / 3.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+
+  FILE* output = fopen("test/flat_before.txt", "w");
+  // for (int i = 0; i < 100; i++) {
+  //   for (int j = 0; j < 100; j++) {
+  //     float u = (float) i / 99.0f;
+  //     float v = (float) j / 99.0f;
+  //     fv3_t p = surf.get_point(u, v);
+  //     fprintf(output, "(%.20g, %.20g),(%.20g,%.20g,%.20g)\n", u, v, p.data[0], p.data[1], p.data[2]);
+  //   }
+  // }
+  for (int i = 0; i < surf.point_res[0]; i++) {
+    for (int j = 0; j < surf.point_res[1]; j++) {
+      fv3_t p = surf.ctrl[i][j];
+      fprintf(output, "(%.6g, %.6g, %.6g)%c ", p.data[0], p.data[1], p.data[2], (j == surf.point_res[1] - 1) ? '\n' : ',');
+    }
+  }
+  fclose(output);
+
+  surf.refine_mesh();
+
+  ASSERT(1 == 1);
+
+  return 0;
+}

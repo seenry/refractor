@@ -1,12 +1,10 @@
-# setup:
+# references:
+- NURBS Raytracing
 
-clone + run `make`
+[1] https://www2.cs.utah.edu/gdc/publications/papers/raynurbs.pdf
 
-# TODO:
+- knot insertion:
 
-- [ ] Ray Tracer
-- - [ ] Surface Representation
-- - [ ] Snell's Law
-- - [ ] Ray Marching
-- [ ] Ev. Alg.
+[2]  https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/NURBS-knot-insert.html
 
+[3] https://github.com/cyanray/libnurbs/blob/913e40ba/src/Curve/Curve.cpp#L464-L476
