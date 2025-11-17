@@ -11,9 +11,15 @@ public:
   fv3_t operator+(const fv3_t& other) const;
   fv3_t operator-(const fv3_t& other) const;
   fv3_t operator*(float scalar) const;
+  fv3_t operator/(float scalar) const;
   
   float dot(const fv3_t& other) const;
   float length() const;
   fv3_t cross(const fv3_t& other) const;
   fv3_t normalize() const;
+  // fv3_t max(const fv3_t& other) const;
+  // fv3_t min(const fv3_t& other) const;
+
+  static fv3_t max(const fv3_t& a, const fv3_t& b);
+  static fv3_t min(const fv3_t& a, const fv3_t& b);
 };

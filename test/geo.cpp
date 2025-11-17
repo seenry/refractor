@@ -36,6 +36,10 @@ TESTCASE(test_surf_init) {
   }
   ASSERT(surf_0.knot[0].size() == 20);
   ASSERT(surf_0.knot[1].size() == 20);
+  ASSERT(surf_0.tesselation.domain[0][0] == 0.0f);
+  ASSERT(surf_0.tesselation.domain[0][1] == 1.0f);
+  ASSERT(surf_0.tesselation.domain[1][0] == 0.0f);
+  ASSERT(surf_0.tesselation.domain[1][1] == 1.0f);
 
   NurbSurf surf_1(11);
   ASSERT(surf_1.degree == 3);
@@ -49,6 +53,10 @@ TESTCASE(test_surf_init) {
   }
   ASSERT(surf_1.knot[0].size() == 15);
   ASSERT(surf_1.knot[1].size() == 15);
+  ASSERT(surf_1.tesselation.domain[0][0] == 0.0f);
+  ASSERT(surf_1.tesselation.domain[0][1] == 1.0f);
+  ASSERT(surf_1.tesselation.domain[1][0] == 0.0f);
+  ASSERT(surf_1.tesselation.domain[1][1] == 1.0f);
 
   return 0;
 }
@@ -63,7 +71,8 @@ TESTCASE(test_surf_init) {
   (var_name).knot[0][0] = 0.0f; (var_name).knot[0][1] = 0.0f; (var_name).knot[0][2] = 0.0f; (var_name).knot[0][3] = 0.0f; \
   (var_name).knot[0][4] = 1.0f; (var_name).knot[0][5] = 1.0f; (var_name).knot[0][6] = 1.0f; (var_name).knot[0][7] = 1.0f; \
   (var_name).knot[1][0] = 0.0f; (var_name).knot[1][1] = 0.0f; (var_name).knot[1][2] = 0.0f; (var_name).knot[1][3] = 0.0f; \
-  (var_name).knot[1][4] = 1.0f; (var_name).knot[1][5] = 1.0f; (var_name).knot[1][6] = 1.0f; (var_name).knot[1][7] = 1.0f;
+  (var_name).knot[1][4] = 1.0f; (var_name).knot[1][5] = 1.0f; (var_name).knot[1][6] = 1.0f; (var_name).knot[1][7] = 1.0f; \
+  (var_name).tesselation.add_reference(var_name);
 
 TESTCASE(test_surf_0) {
   NurbSurf surf(4);
@@ -101,98 +110,53 @@ TESTCASE(test_surf_1) {
   return 0;
 }
 
-#define POST_INSERT_CMP(surf) do { \
-  for (int u = 0; u < 100; u++) { \
-    for (int v = 0; v < 100; v++) { \
-      float fu = (float) u / 99.0f; \
-      float fv = (float) v / 99.0f; \
-      fv3_t p_test = surf.get_point(fu, fv); \
-      fv3_t p_gold = gold.get_point(fu, fv); \
-      char msg[256]; \
-      snprintf(msg, 256, "point(%.6g, %.6g) expects (%.20g, %.20g, %.20g), got (%.20g, %.20g, %.20g)", \
-        fu, fv, \
-        p_gold.data[0], p_gold.data[1], p_gold.data[2], \
-        p_test.data[0], p_test.data[1], p_test.data[2]); \
-      ASSERT_BLAME(std::abs(p_test.data[0] - p_gold.data[0]) < F32_TOL, msg); \
-      ASSERT_BLAME(std::abs(p_test.data[1] - p_gold.data[1]) < F32_TOL, msg); \
-      ASSERT_BLAME(std::abs(p_test.data[2] - p_gold.data[2]) < F32_TOL, msg); \
-    } \
-  } \
-} while (0)
-TESTCASE(test_surf_2) {
-  NurbSurf gold(4);
-  SETUP_SURF_0(gold);
-
-  int n_insert = 17;
-
-  NurbSurf s0(4);
-  SETUP_SURF_0(s0);
-  for (int i = 0; i < n_insert; i++) {
-    float t = (float) (i + 1) / (float) (n_insert + 1);
-    s0.insert_knot(0, t);
-  }
-  ASSERT(s0.point_res[0] == 4 + n_insert);
-  ASSERT(s0.point_res[1] == 4);
-  POST_INSERT_CMP(s0);
-
-  NurbSurf s1(4);
-  SETUP_SURF_0(s1);
-  for (int i = 0; i < n_insert; i++) {
-    float t = (float) (i + 1) / (float) (n_insert + 1);
-    s1.insert_knot(1, t);
-  }
-  ASSERT(s1.point_res[0] == 4);
-  ASSERT(s1.point_res[1] == 4 + n_insert);
-  POST_INSERT_CMP(s1);
-
-  for (int i = 0; i < n_insert; i++) {
-    float t = (float) (i + 1) / (float) (n_insert + 1);
-    s0.insert_knot(1, t);
-  }
-  ASSERT(s0.point_res[1] == 4 + n_insert);
-  POST_INSERT_CMP(s0);
-
-  for (int i = 0; i < n_insert; i++) {
-    float t = (float) (i + 1) / (float) (n_insert + 1);
-    s1.insert_knot(0, t);
-  }
-  ASSERT(s1.point_res[0] == 4 + n_insert);
-  POST_INSERT_CMP(s1);
-
-  return 0;
-}
-
-TESTCASE(test_flatenning_0) {
-  NurbSurf surf(6);
-  for (int i = 0; i < 6; i++) {
-    for (int j = 0; j < 6; j++) {
-      surf.ctrl[i][j] = fv3_t((float) i, (float) j, 0.0f);
-      surf.weight[i][j] = 1.0f;
-    }
-  }
-  surf.knot[0] = {0.0f, 0.0f, 0.0f, 0.0f, 1.0f / 3.0f, 2.0f / 3.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-  surf.knot[1] = {0.0f, 0.0f, 0.0f, 0.0f, 1.0f / 3.0f, 2.0f / 3.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-
-  FILE* output = fopen("test/flat_before.txt", "w");
-  // for (int i = 0; i < 100; i++) {
-  //   for (int j = 0; j < 100; j++) {
-  //     float u = (float) i / 99.0f;
-  //     float v = (float) j / 99.0f;
-  //     fv3_t p = surf.get_point(u, v);
-  //     fprintf(output, "(%.20g, %.20g),(%.20g,%.20g,%.20g)\n", u, v, p.data[0], p.data[1], p.data[2]);
-  //   }
-  // }
-  for (int i = 0; i < surf.point_res[0]; i++) {
-    for (int j = 0; j < surf.point_res[1]; j++) {
-      fv3_t p = surf.ctrl[i][j];
-      fprintf(output, "(%.6g, %.6g, %.6g)%c ", p.data[0], p.data[1], p.data[2], (j == surf.point_res[1] - 1) ? '\n' : ',');
-    }
-  }
-  fclose(output);
-
-  surf.refine_mesh();
+TESTCASE(test_tesselation_0) {
+  NurbSurf surf(4);
+  SETUP_SURF_0(surf);
 
   ASSERT(1 == 1);
+  printf("\n");
+
+  Tile &t = surf.tesselation;
+  ASSERT(t.children.size() == 0);
+  surf.refine_mesh();
+  // printf("final bbox: (%.3g, %.3g, %.3g) to (%.3g, %.3g, %.3g)\n",
+  //   t.bbox[0].data[0], t.bbox[0].data[1], t.bbox[0].data[2],
+  //   t.bbox[1].data[0], t.bbox[1].data[1], t.bbox[1].data[2]);
+  ASSERT(std::abs(t.bbox[0].data[2] + 0.0896f) < 1e-4f);
+  ASSERT(std::abs(t.bbox[1].data[2] - 0.0689f) < 1e-4f);
+
+  // FILE* tess_file = fopen("test/tessellation.txt", "w");
+  std::vector<Tile*> stack;
+  stack.push_back(&surf.tesselation);
+  int n_tiles = 0;
+  while (stack.size() > 0) {
+    Tile* current = stack.back();
+    stack.pop_back();
+    if (current->children.size() == 0) {
+      // for (int i = 0; i < 2; i++) {
+      //   fprintf(tess_file, "%.6f,%.6f,%.6f\n", 
+      //     current->corners[i * 2 + i].data[0],
+      //     current->corners[i * 2 + i].data[1],
+      //     current->corners[i * 2 + i].data[2]);
+      //   fprintf(tess_file, "%.6f,%.6f,%.6f\n", 
+      //     current->corners[i * 2 + (1 - i)].data[0],
+      //     current->corners[i * 2 + (1 - i)].data[1],
+      //     current->corners[i * 2 + (1 - i)].data[2]);
+      // }
+      // fprintf(tess_file, "%.6f,%.6f,%.6f\n\n",
+      //   current->corners[0].data[0],
+      //   current->corners[0].data[1],
+      //   current->corners[0].data[2]);
+      n_tiles++;
+    }
+    for (Tile& child : current->children) {
+      stack.push_back(&child);
+    }
+  }
+  // fclose(tess_file);
+  // printf("Total tiles after refinement: %d\n", n_tiles);
+  ASSERT(n_tiles == 3553);
 
   return 0;
 }

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <stdio.h>
 
 #include "vec.h"
 #include "defines.h"
@@ -39,5 +40,19 @@ fv3_t fv3_t::cross(const fv3_t& other) const {
 }
 fv3_t fv3_t::normalize() const {
   float len = length();
-  return (len > FTOL) ? (*this) * (1.0f / len) : fv3_t(0.0f, 0.0f, 0.0f);
+  return (*this) * (1.0f / len);
+}
+fv3_t fv3_t::max(const fv3_t& a, const fv3_t& b) {
+  return fv3_t(
+    (a.data[0] > b.data[0]) ? a.data[0] : b.data[0],
+    (a.data[1] > b.data[1]) ? a.data[1] : b.data[1],
+    (a.data[2] > b.data[2]) ? a.data[2] : b.data[2]
+  );
+}
+fv3_t fv3_t::min(const fv3_t& a, const fv3_t& b) {
+  return fv3_t(
+    (a.data[0] < b.data[0]) ? a.data[0] : b.data[0],
+    (a.data[1] < b.data[1]) ? a.data[1] : b.data[1],
+    (a.data[2] < b.data[2]) ? a.data[2] : b.data[2]
+  );
 }

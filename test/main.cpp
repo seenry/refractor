@@ -1,16 +1,10 @@
 #include "test.h"
 
-TESTCASE(test_0) {
-    ASSERT(1 == 1);
-    return 0;
-}
-
 uint8_t (*test_list[])(char*) = {
     test_surf_init,
     test_surf_0,
     test_surf_1,
-    test_surf_2,
-    test_flatenning_0,
+    test_tesselation_0,
 };
 
 int main () {

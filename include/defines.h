@@ -1,3 +1,3 @@
 #pragma once
 
-#define FTOL (5e-7f)
+#define FTOL (1e-6f)

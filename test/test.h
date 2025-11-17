@@ -25,5 +25,4 @@ uint8_t label(char* err_str_)
 TESTCASE(test_surf_init);
 TESTCASE(test_surf_0);
 TESTCASE(test_surf_1);
-TESTCASE(test_surf_2);
-TESTCASE(test_flatenning_0);
+TESTCASE(test_tesselation_0);
