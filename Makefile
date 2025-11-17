@@ -2,7 +2,7 @@ CC = @echo " CC :: "$@ ; clang++
 
 EXE := refractor
 
-COMMON_FLAGS := -Wall -Wextra
+COMMON_FLAGS := -Wall -Wextra -std=c++17
 CFLAGS := $(COMMON_FLAGS) -O2 
 DFLAGS := $(COMMON_FLAGS) -O0 -g -fsanitize=address -fsanitize=undefined
 INC := -I$(PWD)/parlaylib/build/install/include -I$(PWD)/include
