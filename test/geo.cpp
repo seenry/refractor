@@ -158,5 +158,23 @@ TESTCASE(test_tesselation_0) {
   // printf("Total tiles after refinement: %d\n", n_tiles);
   ASSERT(n_tiles == 3553);
 
+  FILE* ray_out = fopen("test/ray_intersects.txt", "w");
+  for (int i = 0; i < 17; i++) {
+    for (int j = 0; j < 17; j++) {
+      float u = (float) (i + 1) / (17.0f + 1.0f);
+      float v = (float) (j + 1) / (17.0f + 1.0f);
+      fv3_t p = surf.get_point(u, v);
+      Ray ray(
+        fv3_t(p.data[0], p.data[1], -1.0f),
+        fv3_t(0.0f, 0.0f, 1.0f)
+      );
+      fv3_t intersect;
+      int hit = surf.get_intersect(ray, intersect);
+      ASSERT(hit == 0);
+      fprintf(ray_out, "%.6f,%.6f,%.6f\n", intersect.data[0], intersect.data[1], intersect.data[2]);
+    }
+  }
+  fclose(ray_out);
+
   return 0;
 }

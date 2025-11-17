@@ -4,6 +4,7 @@
 #include <list>
 
 #include "vec.h"
+#include "ray.h"
 
 class NurbSurf;
 class Tile;
@@ -18,8 +19,13 @@ public:
 
   void add_reference(NurbSurf& surf);
   fv3_t get_point(float u, float v) const;
+  fv3_t du(float u, float v) const;
+  fv3_t dv(float u, float v) const;
+  fv3_t get_normal(float u, float v) const;
   void split();
   void update_bbox();
+  int blpatch_intersect(const Ray& ray, fv3_t& intersect) const;
+  int bbox_intersect(const Ray& ray, fv3_t& intersect) const;
 
   Tile();
   Tile(float u0, float du, float v0, float dv);
@@ -43,6 +49,8 @@ public:
   float dbasis(int axis, int i, int p, float t) const;
   fv3_t get_point(float t_x, float t_y) const;
   fv3_t get_normal(float t_x, float t_y) const;
+
+  int get_intersect(const Ray& ray, fv3_t& intersect) const;
 
   void refine_mesh();
 

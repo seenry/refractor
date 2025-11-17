@@ -190,3 +190,7 @@ void NurbSurf::refine_mesh() {
   
   tesselation.update_bbox();
 }
+
+int NurbSurf::get_intersect(const Ray& ray, fv3_t& intersect) const {
+  return tesselation.bbox_intersect(ray, intersect);
+}
