@@ -2,7 +2,7 @@
 
 #include "portprio/linalg.h"
 
-TESTCASE(portprio_linalg_0) {
+TESTCASE(linalg_0) {
 	Matrix mat_0(3, 5);
 	ASSERT(mat_0.dims[0] == 3);
 	ASSERT(mat_0.dims[1] == 5);
@@ -25,7 +25,7 @@ TESTCASE(portprio_linalg_0) {
 	return 0;
 }
 
-TESTCASE(portprio_linalg_1) {
+TESTCASE(linalg_1) {
 	Matrix a(2, 3);
 	a.d[0][0] = 1.0f; a.d[0][1] = 2.0f; a.d[0][2] = 3.0f;
 	a.d[1][0] = 4.0f; a.d[1][1] = 5.0f; a.d[1][2] = 6.0f;
@@ -41,7 +41,7 @@ TESTCASE(portprio_linalg_1) {
 	return 0;
 }
 
-TESTCASE(portprio_linalg_2) {
+TESTCASE(linalg_2) {
 	Matrix a(4, 5);
 	Matrix b(5, 2);
 	a.d[0][0] = 1.0f; a.d[0][1] = 2.0f; a.d[0][2] = 3.0f; a.d[0][3] = 4.0f; a.d[0][4] = 5.0f;

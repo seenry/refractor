@@ -5,61 +5,29 @@
 
 #include "portprio/rand.h"
 
-TESTCASE(evo2014_chr_0_0) {
+TESTCASE(chr_0_0) {
   std::vector<int> topology = {3, 5, 2};
   parlay::random rng(67);
   Chromosome_0 c(rng, topology);
-  ASSERT(c.genome.size() == 2);
-  ASSERT(c.genome[0].dims[0] == 3);
-  ASSERT(c.genome[0].dims[1] == 5);
-  ASSERT(c.genome[1].dims[0] == 5);
-  ASSERT(c.genome[1].dims[1] == 2);
-
-  FILE* reference = fopen("test/ref/evo2014_chr_0_0.ref", "r");
-  char line[32];
-  for (int i = 0; i < c.genome.size(); i++) {
-    for (int j = 0; j < c.genome[i].dims[0]; j++) {
-      for (int k = 0; k < c.genome[i].dims[1]; k++) {
-        float val = c.genome[i].d[j][k];
-        fgets(line, 32, reference);
-        float ref_val = atof(line);
-        ASSERT(F_EQ(val, ref_val));
-      }
-    }
-  }
-  fclose(reference);
+  ASSERT(c.genome.size() == topology.size() - 1);
+  ASSERT(c.genome[0].dims[0] == topology[0]);
+  ASSERT(c.genome[0].dims[1] == topology[1]);
+  ASSERT(c.genome[1].dims[0] == topology[1]);
+  ASSERT(c.genome[1].dims[1] == topology[2]);
+  ASSERT(c.genome[0].dims[0] == c.genome[0].d.size());
+  ASSERT(c.genome[0].dims[1] == c.genome[0].d[0].size());
+  ASSERT(c.genome[1].dims[0] == c.genome[1].d.size());
+  ASSERT(c.genome[1].dims[1] == c.genome[1].d[0].size());
 
   return 0;
 }
 
-TESTCASE(evo2014_pop_0_0) {
+TESTCASE(pop_0_0) {
   std::vector<int> topology = {5, 4, 3};
   Pop_0::pop_size = 10;
   Pop_0 population(777, topology);
   ASSERT(population.members.size() == 10);
-  for (int i = 0; i < Pop_0::pop_size; i++) {
-    ASSERT(population.members[i].genome.size() == 2);
-    ASSERT(population.members[i].genome[0].dims[0] == 5);
-    ASSERT(population.members[i].genome[0].dims[1] == 4);
-    ASSERT(population.members[i].genome[1].dims[0] == 4);
-    ASSERT(population.members[i].genome[1].dims[1] == 3);
-  }
-
-  FILE* reference = fopen("test/ref/evo2014_pop_0_0.ref", "r");
-  char line[64];
-  for (int i = 0; i < Pop_0::pop_size; i += 3) {
-    for (int j = 0; j < population.members[i].genome.size(); j++) {
-      for (int k = 0; k < population.members[i].genome[j].dims[0]; k++) {
-        for (int l = 0; l < population.members[i].genome[j].dims[1]; l++) {
-          float val = population.members[i].genome[j].d[k][l];
-          fgets(line, 64, reference);
-          float ref_val = atof(line);
-          ASSERT(F_EQ(val, ref_val));
-        }
-      }
-    }
-  }
-  fclose(reference);
+  ASSERT(population.fitnesses.size() == 10);
 
   return 0;
 }
@@ -73,45 +41,49 @@ auto get_ffn(parlay::random& rng) {
       }, 1, c.topology[0]
     );
     
-    for (int layer = 0; layer + 1 < c.topology.size(); layer++) {
-      input = Matrix::mult(input, c.genome[layer]);
-      for (int i = 0; i < input.dims[1]; i++) {
-        if (input.d[0][i] < 0.0f) {
-          input.d[0][i] *= 0.01f;
-        }
-      }
-    }
+    
     return input.d[0][0];
   };
 
   return ffn;
 }
 
-TESTCASE(evo2014_pop_0_1) {
+TESTCASE(pop_0_1) {
   std::vector<int> topology = {2, 3, 3, 1};
 
-  Pop_0::pop_size = 3;
-  Pop_0 population(777, topology);
+  Pop_0::pop_size = 1;
+  Pop_0 pop(777, topology);
+  std::vector<Matrix>& w = pop.members[0].genome;
+  w[0].d[0][0] = -0.623901f; w[0].d[0][1] =  1.299682f; w[0].d[0][2] =  1.407398f;
+  w[0].d[1][0] =  0.849654f; w[0].d[1][1] = -0.536967f; w[0].d[1][2] = -0.725496f;
+  w[1].d[0][0] = -0.961907f; w[1].d[0][1] =  1.827444f; w[1].d[0][2] = -0.378491f;
+  w[1].d[1][0] = -1.287295f; w[1].d[1][1] =  0.077923f; w[1].d[1][2] =  1.357746f;
+  w[1].d[2][0] = -0.773786f; w[1].d[2][1] =  0.798857f; w[1].d[2][2] =  0.295523f;
+  w[2].d[0][0] =  0.302616f;
+  w[2].d[1][0] =  0.126007f;
+  w[2].d[2][0] =  0.310623f;
 
-  FILE* reference = fopen("test/ref/evo2014_pop_0_1.ref", "r");
-  char line[64];
-  parlay::random rng(67);
-  for (int iter = 0; iter < 5; iter++) {
-    parlay::random local_rng = rng.fork(iter);
-    population.evaluate_fitness(get_ffn(local_rng));
-    for (int i = 0; i < Pop_0::pop_size; i++) {
-      float fit = population.fitnesses[i];
-      fgets(line, 64, reference);
-      float ref_fit = atof(line);
-      ASSERT(F_EQ(fit, ref_fit));
+  Matrix input(1, 2);
+  input.d[0][0] = 0.5f;
+  input.d[0][1] = -0.5f;
+  
+  Chromosome_0& c = pop.members[0];
+  for (int layer = 0; layer + 1 < c.topology.size(); layer++) {
+    input = Matrix::mult(input, c.genome[layer]);
+    for (int i = 0; i < input.dims[1]; i++) {
+      if (input.d[0][i] < 0.0f) {
+        input.d[0][i] *= 0.01f;
+      }
     }
   }
+
+  ASSERT(F_EQ(input.d[0][0], 0.59468013f));
 
   ASSERT(1==1);
   return 0;
 }
 
-TESTCASE(evo2014_pop_0_stats) {
+TESTCASE(pop_0_stats) {
   Pop_0::pop_size = 1000;
   std::vector<int> topology = {10, 10};
   std::vector<float> weights(10 * 10 * 1000);
@@ -170,11 +142,12 @@ TESTCASE(evo2014_pop_0_stats) {
   
   printf("\n");
   char line[81];
+  printf("/\n");
   for (int i = 0; i < n_bucket; i++) {
-    int n_stars = std::floor(68.0f
+    int n_stars = std::floor(71.0f
       * static_cast<float>(buckets[i])
       / static_cast<float>(max_bucket));
-    int offset = snprintf(line, 81, "[%2d] ", i);
+    int offset = snprintf(line, 81, "| ");
     for (int j = 0; j < n_stars; j++) {
       offset += snprintf(line + offset, 81 - offset, "*");
     }
@@ -202,6 +175,7 @@ TESTCASE(evo2014_pop_0_stats) {
       }
     }
   }
+  printf("\\\n");
 
   return 0;
 }

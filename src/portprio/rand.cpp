@@ -8,9 +8,12 @@ float random_normal(parlay::random& rng, float mean, float stddev) {
 	float x, y, s;
 
 	int i = 0;
+	parlay::random local_rng;
 	do {
-		x = static_cast<float>(rng[i++]) / static_cast<float>(rng.max());
-		y = static_cast<float>(rng[i++]) / static_cast<float>(rng.max());
+		local_rng = rng.fork(i++);
+		x = random_uniform(local_rng);
+		local_rng = rng.fork(i++);
+		y = random_uniform(local_rng);
 		x = x * 2.0f - 1.0f;
 		y = y * 2.0f - 1.0f;
 		s = x*x + y*y;
