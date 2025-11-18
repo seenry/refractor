@@ -1,7 +1,6 @@
 #include "test.h"
 
-#include "evo2014/chr_0.h"
-#include "evo2014/pop_0.h"
+#include "evo2014.h"
 
 #include "portprio/rand.h"
 
@@ -84,98 +83,46 @@ TESTCASE(pop_0_1) {
 }
 
 TESTCASE(pop_0_stats) {
-  Pop_0::pop_size = 1000;
-  std::vector<int> topology = {10, 10};
-  std::vector<float> weights(10 * 10 * 1000);
-  float mean = 0.0f;
-  float var = 0.0f;
+  Pop_0::pop_size = 1024;
+  std::vector<int> topology = {5, 8, 10, 2};
+  std::vector<float> weights(8 * 10 * 1024);
+  float mean;
+  float var;
 
-  for (int i = 0; i < 100000; i += 2861) {
-    Pop_0 population(i, topology);
-    for (int j = 0; j < Pop_0::pop_size; j++) {
-      for (int r = 0; r < 10; r++) {
-        for (int c = 0; c < 10; c++) {
-          weights[j * 100 + r * 10 + c] =
-            population.members[j].genome[0].d[r][c];
+  for (int layer = 0; layer + 1 < topology.size(); layer++) {
+    int layer_size = topology[layer] * topology[layer + 1];
+    mean = 0.0f;
+    var = 0.0f;
+    for (int iter = 0; iter < 10; iter++) {
+      int i = (iter ^ 0x1337abcd) * 0xdeadbeef;
+      Pop_0 population(i, topology);
+      for (int j = 0; j < Pop_0::pop_size; j++) {
+        Matrix& m = population.members[j].genome[layer];
+        for (int r = 0; r < topology[layer]; r++) {
+          for (int c = 0; c < topology[layer + 1]; c++) {
+            size_t idx = j * layer_size + r * topology[layer + 1] + c;
+            weights[idx] = m.d[r][c];
+          }
         }
       }
     }
-
-    mean = 0.0f;
-    for (int j = 0; j < weights.size(); j++) {
-      mean += weights[j];
+    
+    int n_weights = layer_size * Pop_0::pop_size;
+    for (int i = 0; i < n_weights; i++) {
+      mean += weights[i];
     }
-    mean /= static_cast<float>(weights.size());
+    mean /= static_cast<float>(n_weights);
     ASSERT(std::abs(mean) < 0.1f);
 
+    float xavier2 = 2.0f / (static_cast<float>(topology[layer]) + static_cast<float>(topology[layer + 1]));
     var = 0.0f;
-    for (int j = 0; j < weights.size(); j++) {
+    for (int j = 0; j < n_weights; j++) {
       float diff = weights[j] - mean;
       var += diff * diff;
     }
-    var /= static_cast<float>(weights.size());
-    ASSERT(std::abs(var - 1.0f) < 0.1f);
+    var /= static_cast<float>(n_weights);
+    ASSERT(std::abs(var - xavier2) < 0.1f);
   }
-
-  int n_bucket = 20;
-  std::vector<int> buckets(n_bucket);
-  float min = 100.0f;
-  float max = -100.0f;
-  for (int i = 0; i < weights.size(); i++) {
-    if (weights[i] < min) min = weights[i];
-    if (weights[i] > max) max = weights[i];
-  }
-  max -= min;
-  for (int i = 0; i < weights.size(); i++) {
-    float val = (weights[i] - min) / max;
-    int b = std::floor(val * static_cast<float>(n_bucket));
-    if (b >= n_bucket) b = n_bucket - 1;
-    buckets[b]++;
-  }
-  int max_bucket = 0;
-  for (int i = 0; i < n_bucket; i++) {
-    if (buckets[i] > max_bucket) {
-      max_bucket = buckets[i];
-    }
-  }
-  max_bucket++;
-  
-  printf("\n");
-  char line[81];
-  printf("/\n");
-  for (int i = 0; i < n_bucket; i++) {
-    int n_stars = std::floor(71.0f
-      * static_cast<float>(buckets[i])
-      / static_cast<float>(max_bucket));
-    int offset = snprintf(line, 81, "| ");
-    for (int j = 0; j < n_stars; j++) {
-      offset += snprintf(line + offset, 81 - offset, "*");
-    }
-    offset += snprintf(line + offset, 81 - offset, " (%d)", buckets[i]);
-    printf("%s", line);
-    if (i < n_bucket - 2) {
-      printf("\n");
-    } else {
-      if (i == n_bucket - 2) {
-        char mean_out[32];
-        int mean_off = snprintf(mean_out, 32, " mean: %f", mean);
-        int remaining = 80 - offset - mean_off;
-        for (int j = 0; j < remaining; j++) {
-          printf(" ");
-        }
-        printf("%s\n", mean_out);
-      } else {
-        char var_out[32];
-        int var_off = snprintf(var_out, 32, " variance: %f", var);
-        int remaining = 80 - offset - var_off;
-        for (int j = 0; j < remaining; j++) {
-          printf(" ");
-        }
-        printf("%s\n", var_out);
-      }
-    }
-  }
-  printf("\\\n");
 
   return 0;
 }

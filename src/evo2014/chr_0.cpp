@@ -19,11 +19,12 @@ Chromosome_0::Chromosome_0(parlay::random rng, std::vector<int>& topology_) {
 
 	int offset = 0;
 	for (int layer = 0; layer + 1 < topology.size(); layer++) {
+		float xavier = std::sqrtf(2.0f / (static_cast<float>(topology[layer]) + static_cast<float>(topology[layer + 1])));
 		genome[layer].d = parlay::tabulate(topology[layer], [&](size_t rows) {
 			return parlay::tabulate(topology[layer + 1], [&](size_t cols) {
 				size_t local_offset = offset + rows * topology[layer + 1] + cols;
 				parlay::random local_rng = rng.fork(local_offset);
-				return random_normal(local_rng, 0.0f, 1.0f);
+				return random_normal(local_rng, 0.0f, xavier);
 			});
 		});
 		genome[layer].dims = { topology[layer], topology[layer + 1] };
