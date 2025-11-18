@@ -7,8 +7,11 @@
 uint8_t label(char* err_str_)
 #define TEST_LIST \
     X(portprio_linalg_0) \
+    X(portprio_linalg_1) \
+    X(portprio_linalg_2) \
     X(evo2014_chr_0_0) \
-    X(evo2014_pop_0_0)
+    X(evo2014_pop_0_0) \
+    X(evo2014_pop_0_1)
 #define X(name) TESTCASE(name);
 TEST_LIST
 #undef X

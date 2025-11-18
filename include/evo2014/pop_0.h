@@ -7,10 +7,13 @@
 class Pop_0 {
 public:
   parlay::sequence<Chromosome_0> members;
+  std::vector<float> fitnesses;
   std::vector<int> topology;
   parlay::random base_rng;
 
   static int pop_size;
 
   Pop_0(int seed, std::vector<int>& topology_);
+  
+  void evaluate_fitness(std::function<float(Chromosome_0& c)> ffn);
 };

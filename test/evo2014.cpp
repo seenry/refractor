@@ -57,6 +57,53 @@ TESTCASE(evo2014_pop_0_0) {
       }
     }
   }
+  fclose(reference);
+
+  return 0;
+}
+
+TESTCASE(evo2014_pop_0_1) {
+  // std::vector<int> topology = {2, 3, 3, 1};
+
+  // auto ffn = [](Chromosome_0& c) {
+  //   parlay::random rng(67);
+  //   parlay::sequence<float> input = Matrix(
+  //     [&](size_t i) {
+  //       return random_uniform(rng.fork(i), 0.0f, 1.5f);
+  //     },
+  //     1, c.topology[0]
+  //   )
+  //   // parlay::tabulate(c.topology[0], [&](size_t i) {
+  //   //   return random_uniform(rng.fork(i), 0.0f, 1.5f);
+  //   // });
+  //   rng = rng.fork(c.topology[0]);
+
+  //   for (int layer = 0; layer + 1 < c.topology.size(); layer++) {
+  //     parlay::sequence<float> output = parlay::tabulate(c.topology[layer + 1], [&](size_t j) {
+  //       float sum = 0.0f;
+  //       for (int i = 0; i < c.topology[layer]; i++) {
+  //         sum += input[i] * c.genome[layer].d[i][j];
+  //       }
+  //       // Activation function: ReLU
+  //       return sum > 0.0f ? sum : 0.0f;
+  //     });
+  //     input = output;
+  //   }
+  //   // float sum = 0.0f;
+  //   // for (int i = 0; i < c.genome.size(); i++) {
+  //   //   for (int j = 0; j < c.genome[i].dims[0]; j++) {
+  //   //     for (int k = 0; k < c.genome[i].dims[1]; k++) {
+  //   //       sum += c.genome[i].d[j][k];
+  //   //     }
+  //   //   }
+  //   // }
+  //   // return sum;
+  // };
+
+
+  ASSERT(1 == 1);
+
+
 
   return 0;
 }

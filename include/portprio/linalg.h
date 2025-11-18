@@ -19,7 +19,10 @@ public:
 	std::array<int, 2> dims;
 
 	Matrix() : dims{0, 0} {}
-	Matrix(int x, int y);
-	Matrix(std::function<float(size_t)> gen, int x, int y);
+	Matrix(int y, int x);
+	Matrix(std::function<float(size_t)> gen, int y, int x);
+
+	static Matrix transpose(Matrix& m);
+	static Matrix mult(Matrix& a, Matrix& b);
 };
 
