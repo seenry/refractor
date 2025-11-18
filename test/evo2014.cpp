@@ -31,22 +31,6 @@ TESTCASE(pop_0_0) {
   return 0;
 }
 
-auto get_ffn(parlay::random& rng) {
-  auto ffn = [&](Chromosome_0& c) {
-    auto input = Matrix(
-      [&](size_t i) {
-        parlay::random local_rng = rng.fork(i);
-        return random_uniform(local_rng); 
-      }, 1, c.topology[0]
-    );
-    
-    
-    return input.d[0][0];
-  };
-
-  return ffn;
-}
-
 TESTCASE(pop_0_1) {
   std::vector<int> topology = {2, 3, 3, 1};
 
@@ -62,23 +46,24 @@ TESTCASE(pop_0_1) {
   w[2].d[1][0] =  0.126007f;
   w[2].d[2][0] =  0.310623f;
 
-  Matrix input(1, 2);
-  input.d[0][0] = 0.5f;
-  input.d[0][1] = -0.5f;
-  
-  Chromosome_0& c = pop.members[0];
-  for (int layer = 0; layer + 1 < c.topology.size(); layer++) {
-    input = Matrix::mult(input, c.genome[layer]);
-    for (int i = 0; i < input.dims[1]; i++) {
-      if (input.d[0][i] < 0.0f) {
-        input.d[0][i] *= 0.01f;
+  auto ffn = [&](Chromosome_0& c) {
+    Matrix input(1, 2);
+    input.d[0][0] = 0.5f;
+    input.d[0][1] = -0.5f;
+    for (int layer = 0; layer + 1 < c.topology.size(); layer++) {
+      input = Matrix::mult(input, c.genome[layer]);
+      for (int i = 0; i < input.dims[1]; i++) {
+        if (input.d[0][i] < 0.0f) {
+          input.d[0][i] *= 0.01f;
+        }
       }
     }
-  }
+    return input.d[0][0];
+  };
+  
+  pop.evaluate_fitness(ffn);
+  ASSERT(F_EQ(pop.fitnesses[0], 0.59468013f));
 
-  ASSERT(F_EQ(input.d[0][0], 0.59468013f));
-
-  ASSERT(1==1);
   return 0;
 }
 
