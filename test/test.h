@@ -11,7 +11,8 @@ uint8_t label(char* err_str_)
     X(portprio_linalg_2) \
     X(evo2014_chr_0_0) \
     X(evo2014_pop_0_0) \
-    X(evo2014_pop_0_1)
+    X(evo2014_pop_0_1) \
+    X(evo2014_pop_0_stats)
 #define X(name) TESTCASE(name);
 TEST_LIST
 #undef X

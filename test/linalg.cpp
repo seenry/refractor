@@ -56,7 +56,6 @@ TESTCASE(portprio_linalg_2) {
 	b.d[4][0] = 9.0f; b.d[4][1] = 10.0f;
 
 	Matrix c = Matrix::mult(a, b);
-	std::cout << "c.d[0][0] = " << c.d[0][0] << std::endl;
 	ASSERT(c.dims[0] == 4);
 	ASSERT(c.dims[1] == 2);
 	ASSERT(F_EQ(c.d[0][0], 95.0f));  ASSERT(F_EQ(c.d[0][1], 110.0f));

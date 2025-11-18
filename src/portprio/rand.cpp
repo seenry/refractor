@@ -1,5 +1,9 @@
 #include "portprio/rand.h"
 
+float random_uniform(parlay::random& rng) {
+	return static_cast<float>(rng.rand()) / static_cast<float>(rng.max());
+}
+
 float random_normal(parlay::random& rng, float mean, float stddev) {
 	float x, y, s;
 
