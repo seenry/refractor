@@ -6,7 +6,8 @@
 #define TESTCASE(label) \
 uint8_t label(char* err_str_)
 #define TEST_LIST \
-    X(test_0)
+    X(portprio_linalg_0) \
+    X(evo2014_chr_0_0)
 #define X(name) TESTCASE(name);
 TEST_LIST
 #undef X
@@ -24,3 +25,5 @@ TEST_LIST
         return 1; \
     } \
 } while (0)
+
+#define F_EQ(a, b) (std::abs((a) - (b)) < 1e-6f)
