@@ -1,5 +1,7 @@
 #include "evo2014/chr_0.h"
 
+#include "portprio/rand.h"
+
 Chromosome_0::Chromosome_0(std::vector<int>& topology_) {
 	topology = topology_;
 	genome.resize(topology.size() - 1);
@@ -10,25 +12,8 @@ Chromosome_0::Chromosome_0(std::vector<int>& topology_) {
 	}
 }
 
-float random_normal(parlay::random& rng, float mean, float stddev) {
-	float x, y, s;
-
-	int i = 0;
-	do {
-		x = static_cast<float>(rng[i++]) / static_cast<float>(rng.max());
-		y = static_cast<float>(rng[i++]) / static_cast<float>(rng.max());
-		x = x * 2.0f - 1.0f;
-		y = y * 2.0f - 1.0f;
-		s = x*x + y*y;
-	} while (s <= 1e-6f || s >= 1.0f);
-
-	s = std::sqrtf((-2.0f * std::logf(s)) / s);
-	return mean + x * s * stddev;
-}
-
-Chromosome_0::Chromosome_0(int seed, std::vector<int>& topology_) {
+Chromosome_0::Chromosome_0(parlay::random rng, std::vector<int>& topology_) {
   topology = topology_;
-	parlay::random rng(seed);
 
 	genome.resize(topology.size() - 1);
 
@@ -44,5 +29,7 @@ Chromosome_0::Chromosome_0(int seed, std::vector<int>& topology_) {
 		genome[layer].dims = { topology[layer], topology[layer + 1] };
 		offset += topology[layer] * topology[layer + 1];
 	}
+	
+	base_rng = rng.fork(offset);
 }
 
