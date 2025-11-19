@@ -9,9 +9,14 @@ uint8_t label(char* err_str_)
   X(linalg_0) \
   X(linalg_1) \
   X(linalg_2) \
+  X(util_0) \
   X(chr_0_0) \
   X(pop_0_0) \
   X(pop_0_1) \
+  X(pop_0_2) \
+  X(pop_0_3) \
+  X(chr_0_cross_stats) \
+  X(chr_0_mutate_stats) \
   X(pop_0_stats)
 #define X(name) TESTCASE(name);
 TEST_LIST
