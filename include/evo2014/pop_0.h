@@ -13,6 +13,9 @@ public:
 
   static int pop_size;
   static int elite;
+  static float egality;
+  static float mutation_rate;
+  static float mutation_scale;
 
   Pop_0(int seed, std::vector<int>& topology_);
   

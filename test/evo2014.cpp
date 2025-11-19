@@ -239,3 +239,55 @@ TESTCASE(pop_0_stats) {
 
   return 0;
 }
+
+auto get_restrigin(std::vector<float> shift) {
+  auto rastrigin = [shift](Chromosome_0& c) {
+    float A = 10.0f;
+    float sum = 0.0f;
+    int n = c.topology[1];
+    for (int i = 0; i < n; i++) {
+      float x = c.genome[0].d[0][i] - shift[i];
+      sum += (x * x) - A * std::cosf(2.0f * 3.14159265f * x);
+    }
+
+    float r = A * static_cast<float>(n) + sum;
+    return -r;
+  };
+
+  return rastrigin;
+}
+TESTCASE(evo_i_0) {
+  Pop_0::pop_size = 256;
+  Pop_0::elite = 1;
+  Pop_0::mutation_scale = 20.0f;
+  std::vector<int> topology = { 1, 16 };
+
+  Pop_0 population(67, topology);
+
+  const std::vector<float> opt = {
+    0.5f, -0.5f, 0.25f, -0.25f,
+    0.1f, -0.1f, 0.75f, -0.75f,
+    0.33f, -0.33f, 0.66f, -0.66f,
+    0.9f, -0.9f, 0.0f, 0.0f
+  };
+
+  auto rast = get_restrigin(opt);
+  population.evaluate_fitness(rast);
+  population.sort();
+  std::vector<float> before = population.fitnesses;
+  population.crossover_and_mutate();
+  for (int gen = 1; gen < 100; gen++) {
+    population.evaluate_fitness(rast);
+    population.sort();
+    population.crossover_and_mutate();
+  }
+
+  float improvement = 0.0f;
+  for (int i = 0; i < Pop_0::pop_size; i++) {
+    improvement += population.fitnesses[i] - before[i];
+  }
+  improvement /= static_cast<float>(Pop_0::pop_size);
+  ASSERT(improvement > 100.0f);
+
+  return 0;
+}

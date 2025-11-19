@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <cmath>
+#include <optional>
 
 #define TESTCASE(label) \
 uint8_t label(char* err_str_)
@@ -17,7 +18,8 @@ uint8_t label(char* err_str_)
   X(pop_0_3) \
   X(chr_0_cross_stats) \
   X(chr_0_mutate_stats) \
-  X(pop_0_stats)
+  X(pop_0_stats) \
+  X(evo_i_0)
 #define X(name) TESTCASE(name);
 TEST_LIST
 #undef X
